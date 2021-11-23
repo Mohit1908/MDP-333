@@ -159,6 +159,22 @@ def value_iter(p,eps,discount_factor):
 		pass
 	return extract_policy(value2)
 	
+def policy_iter(p,discount_factor):
+	policy1 = np.empty((SZE[0],SZE[1],2),dtype = str)
+	policy2 = np.empty((SZE[0],SZE[1],2),dtype = str)
+	changed = True
+	def extract_value(policy):
+		pass
+	def extract_policy(value):
+		pass
+	while(changed):
+		value = extract_value(policy1)
+		policy2 = extract_policy(value)
+		if((policy1 != policy2).any()):
+			changed = True
+		policy1 = policy2
+	return policy1
+
 
 	
 
