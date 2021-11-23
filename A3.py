@@ -30,8 +30,34 @@ has_passenger = 0
 
 actions = ('N','E','W','S','PickUp','PutDown')
 
-def parta1():
-	def transition_model(state1,action,state2):
+class parta1:
+	def __init__(self,start,pickup,drop):
+		self.start = start
+		self.pickup = pickup
+		self.drop = drop
+
+	def next_state(self,state,action):
+		if(action == 'PickUp'):
+			if(state.location == self.pickup):
+				state.has_passenger = 1
+				return state
+			else:
+				return state
+		if(action == 'Drop'):
+			if(state.location == self.drop):
+				if(state.has_passenger == 1):
+					state.location = EXIT_LOCATION
+					return state
+				else:
+					return state
+			else:
+				return state
+		if(action == 'N'):
+			pass
+			
+
+
+	def transition_model(self,state1,action,state2):
 		p = 0.0
 		if(action == 'PickUp'):
 			if(state2.location == state1.location).all():
@@ -92,10 +118,10 @@ def parta1():
 				
 		return p
 
-	def reward_model(state1,action,state2):
+	def reward_model(self,state1,action,state2):
 		reward = -1
 		if(action == 'PutDown'):
-			if(state1.location == depots[drop]).all():
+			if(state1.location == depots[self.drop]).all():
 				reward = 20
 			else:
 				reward = -10
@@ -103,3 +129,10 @@ def parta1():
 			if(state1.location != depots[pickup]).any():
 				reward = -10
 		return reward
+
+p = parta1(start,pickup,drop)
+s1 = state(start)
+s2 = state(np.array([4,0]))
+print(p.transition_model(s1,'N',s2))
+print(p.reward_model(s1,'N',s2))
+
