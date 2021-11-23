@@ -11,7 +11,7 @@ E = np.array([0,1])
 W = np.array([0,-1])
 S = np.array([-1,0])
 
-actions = ('N','E','W','S','PickUp','PutDown')
+actions = np.array(['N','E','W','S','PickUp','PutDown'])
 
 depots = {'R':np.array([4,0]),'Y':np.array([0,0]),'B':np.array([0,3]),'G':np.array([4,4])}
 
@@ -94,17 +94,17 @@ class parta1:
 		return p
 
 	def next_state(self,state1,action):
-
+		s1 = state([state1.location[0],state1.location[1]],state1.has_passenger)
 		if(action == 'PickUp'):
 			if(state1.location == depots[self.pickup]).all():
-				state1.has_passenger = 1
-			return {state1:1}
+				s1.has_passenger = 1
+			return {s1:1}
 
 		elif(action == 'PutDown'):
 			if((state1.location == depots[self.drop]).all() and state1.has_passenger == 1):
-				state1.location = EXIT_LOCATION
-			return {state1:1}
-
+				s1.location = EXIT_LOCATION
+			return {s1:1}
+		
 		s1 = state([state1.location[0],state1.location[1]],state1.has_passenger)
 		s2 = state([state1.location[0],state1.location[1]+1],state1.has_passenger)
 		s3 = state([state1.location[0],state1.location[1]-1],state1.has_passenger)
@@ -134,6 +134,35 @@ def valueFunction(value,state2):
 		return 0
 	return value[state2.location[0],state2.location[1],state2.has_passenger]
 
+def print_value(value):
+	p = 0
+	print("P = 0")
+	for i in range(SZE[0]):
+		for j in range(SZE[1]):
+			print(value[SZE[0]-i-1][j][p],end = " ")
+		print("")
+	p = 1
+	print("P = 1")
+	for i in range(SZE[0]):
+		for j in range(SZE[1]):
+			print(value[SZE[0]-i-1][j][p],end = " ")
+		print("")
+
+def print_policy(policy):
+	p = 0
+	print("P = 0")
+	for i in range(SZE[0]):
+		for j in range(SZE[1]):
+			print(policy[SZE[0]-i-1][j][p],end = " ")
+		print("")
+	p = 1
+	print("P = 1")
+	for i in range(SZE[0]):
+		for j in range(SZE[1]):
+			print(policy[SZE[0]-i-1][j][p],end = " ")
+		print("")
+
+
 def value_iter(p,eps,discount_factor):
 
 	value1 = np.zeros((SZE[0],SZE[1],2))
@@ -152,6 +181,7 @@ def value_iter(p,eps,discount_factor):
 					maxx = -Inf
 
 					for a in actions:
+						print(a)
 						val = 0
 						d = p.next_state(st,a)
 
@@ -163,6 +193,7 @@ def value_iter(p,eps,discount_factor):
 					achieved_eps = max(achieved_eps,abs(maxx-value1[st.location[0],st.location[1],st.has_passenger]))
 		
 		value1 = value2.copy()
+		print_value(value1)
 		#print(achieved_eps)
 
 	return extract_policy(value2,p,discount_factor)
@@ -170,7 +201,6 @@ def value_iter(p,eps,discount_factor):
 def extract_policy(value,p,discount_factor):
 
 	policy = np.empty((SZE[0],SZE[1],2),dtype = str)
-
 	for i in range(SZE[0]):
 		for j in range(SZE[1]):
 			for passenger in range(2):
@@ -184,6 +214,8 @@ def extract_policy(value,p,discount_factor):
 						val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*valueFunction(value,s2))
 					if(maxx<val):
 						policy[i][j][passenger] = a
+						print(a)
+						print(policy[i][j][passenger])
 						maxx = val
 	return policy
 
@@ -257,5 +289,5 @@ if __name__ == "__main__":
 	for k in d:
 		print(k.location)
 
-	this_policy = policy_iter(p,0.2,0.9)
-	print(this_policy)
+	this_policy = value_iter(p,0.0001,0.5)
+	print_policy(this_policy)
