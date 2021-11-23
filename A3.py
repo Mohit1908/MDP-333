@@ -36,27 +36,6 @@ class parta1:
 		self.pickup = pickup
 		self.drop = drop
 
-	def next_state(self,state,action):
-		if(action == 'PickUp'):
-			if(state.location == self.pickup):
-				state.has_passenger = 1
-				return state
-			else:
-				return state
-		if(action == 'Drop'):
-			if(state.location == self.drop):
-				if(state.has_passenger == 1):
-					state.location = EXIT_LOCATION
-					return state
-				else:
-					return state
-			else:
-				return state
-		if(action == 'N'):
-			pass
-			
-
-
 	def transition_model(self,state1,action,state2):
 		p = 0.0
 		if(action == 'PickUp'):
@@ -65,7 +44,7 @@ class parta1:
 		elif(action == 'PutDown'):
 			if(state2.location == EXIT_LOCATION):
 				p = 1.0
-		else:
+		elif action in (['N','W','E','S']):
 			if(state1.location[0] != state2.location[0]):
 				if(state1.location[1]==state2.location[1]):
 					if(state2.location[0] - state1.location[0] == 1):
@@ -118,6 +97,30 @@ class parta1:
 				
 		return p
 
+	def next_state(self,state1,action):
+		if(action == 'PickUp'):
+			if(state1.location == self.pickup):
+				state1.has_passenger = 1
+				return {state1:1}
+			else:
+				return {state1:1}
+		if(action == 'Drop'):
+			if(state1.location == self.drop):
+				if(state1.has_passenger == 1):
+					state1.location = EXIT_LOCATION
+					return {state1:1}
+				else:
+					return {state1:1}
+			else:
+				return {state1:1}
+		s1 = state([state1.location[0],state1.location[1]],state1.has_passenger)
+		s2 = state([state1.location[0],state1.location[1]+1],state1.has_passenger)
+		s3 = state([state1.location[0],state1.location[1]-1],state1.has_passenger)
+		s4 = state([state1.location[0]+1,state1.location[1]],state1.has_passenger)
+		s5 = state([state1.location[0]-1,state1.location[1]],state1.has_passenger)
+
+		return {s1:self.transition_model(state1,action,s1),s2:self.transition_model(state1,action,s2),s3:self.transition_model(state1,action,s3),s4:self.transition_model(state1,action,s4),s5:self.transition_model(state1,action,s5),}
+			
 	def reward_model(self,state1,action,state2):
 		reward = -1
 		if(action == 'PutDown'):
@@ -135,4 +138,8 @@ s1 = state(start)
 s2 = state(np.array([4,0]))
 print(p.transition_model(s1,'N',s2))
 print(p.reward_model(s1,'N',s2))
+print(p.next_state(s1,'N'))
+d = p.next_state(s1,'N')
 
+for k in d:
+	print(k.location)
