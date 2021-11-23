@@ -200,7 +200,7 @@ def value_iter(p,eps,discount_factor):
 
 def extract_policy(value,p,discount_factor):
 
-	policy = np.empty((SZE[0],SZE[1],2),dtype = str)
+	policy = np.empty((SZE[0],SZE[1],2),dtype = 'object')
 	for i in range(SZE[0]):
 		for j in range(SZE[1]):
 			for passenger in range(2):
@@ -214,8 +214,8 @@ def extract_policy(value,p,discount_factor):
 						val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*valueFunction(value,s2))
 					if(maxx<val):
 						policy[i][j][passenger] = a
-						print(a)
-						print(policy[i][j][passenger])
+						#print(a)
+						#print(policy[i][j][passenger])
 						maxx = val
 	return policy
 
@@ -249,8 +249,8 @@ def extract_value(policy,p,eps,discount_factor):
 	
 def policy_iter(p,eps,discount_factor):
 
-	policy1 = np.empty((SZE[0],SZE[1],2),dtype = str)
-	policy2 = np.empty((SZE[0],SZE[1],2),dtype = str)
+	policy1 = np.empty((SZE[0],SZE[1],2),dtype = 'object')
+	policy2 = np.empty((SZE[0],SZE[1],2),dtype = 'object')
 	changed = True
 
 	#Initialize policy...
@@ -289,5 +289,5 @@ if __name__ == "__main__":
 	for k in d:
 		print(k.location)
 
-	this_policy = value_iter(p,0.0001,0.5)
+	this_policy = policy_iter(p,0.2,0.9)
 	print_policy(this_policy)
