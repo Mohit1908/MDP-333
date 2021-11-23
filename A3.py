@@ -129,6 +129,11 @@ class parta1:
 				reward = -10
 		return reward
 
+def valueFunction(value,state2):
+	if(state2.location[0]==-1 and state2.location[1]==-1):
+		return 0
+	return value[state2.location[0],state2.location[1],state2.has_passenger]
+
 def value_iter(p,eps,discount_factor):
 
 	value1 = np.zeros((SZE[0],SZE[1],2))
@@ -151,14 +156,14 @@ def value_iter(p,eps,discount_factor):
 						d = p.next_state(st,a)
 
 						for s2 in (d.keys()):
-							val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*value1[s2.location[0],s2.location[1],s2.has_passenger])
+							val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*valueFunction(value1,s2))
 						maxx = max(val,maxx)
 					
 					value2[st.location[0],st.location[1],st.has_passenger] = maxx
 					achieved_eps = max(achieved_eps,abs(maxx-value1[st.location[0],st.location[1],st.has_passenger]))
 		
 		value1 = value2.copy()
-		print(achieved_eps)
+		#print(achieved_eps)
 
 	return extract_policy(value2,p,discount_factor)
 
@@ -176,7 +181,7 @@ def extract_policy(value,p,discount_factor):
 					val = 0
 					d = p.next_state(st,a)
 					for s2 in (d.keys()):
-						val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*value[s2.location[0],s2.location[1],s2.has_passenger])
+						val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*valueFunction(value,s2))
 					if(maxx<val):
 						policy[i][j][passenger] = a
 						maxx = val
@@ -200,7 +205,7 @@ def extract_value(policy,p,eps,discount_factor):
 					d = p.next_state(st,policy[i][j][passenger])
 
 					for s2 in (d.keys()):
-						val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*value1[s2.location[0],s2.location[1],s2.has_passenger])
+						val += d[s2]*(p.reward_model(st,policy[i][j][passenger],s2) + discount_factor*valueFunction(value1,s2))
 										
 					value2[st.location[0],st.location[1],st.has_passenger] = val
 					achieved_eps = max(achieved_eps,abs(val-value1[st.location[0],st.location[1],st.has_passenger]))
@@ -229,7 +234,7 @@ def policy_iter(p,eps,discount_factor):
 			changed = True
 		else:
 			changed = False
-		policy1 = policy2.clone()
+		policy1 = policy2.copy()
 	return policy1
 
 if __name__ == "__main__":
@@ -237,19 +242,20 @@ if __name__ == "__main__":
 	pickup = 'R'
 	drop = 'Y'
 
-	start = np.array([3,0])
-	has_passenger = 0
+	start = np.array([3,4])
 		
 
 	p = parta1(start,pickup,drop)
 	s1 = state(start)
-	s2 = state(np.array([4,0]))
+	s2 = state(np.array([2,4]))
+	
 	print(p.transition_model(s1,'N',s2))
 	print(p.reward_model(s1,'N',s2))
-	print(p.next_state(s1,'N'))
+	
 	d = p.next_state(s1,'N')
 
 	for k in d:
 		print(k.location)
 
-	value_iter(p,0.5,0.9)
+	this_policy = policy_iter(p,0.2,0.9)
+	print(this_policy)
