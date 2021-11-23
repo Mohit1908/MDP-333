@@ -1,6 +1,7 @@
 SZE = [5,5]
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.core.numeric import Inf
 
 
 EXIT_LOCATION = np.array([-1,-1])
@@ -133,6 +134,34 @@ class parta1:
 				reward = -10
 		return reward
 
+def value_iter(p,eps,discount_factor):
+	value1 = np.zeros((SZE[0],SZE[1],2))
+	value2 = np.zeros((SZE[0],SZE[1],2))
+	policy = np.empty((SZE[0],SZE[1],2),dtype = str)
+	achieved_eps = Inf
+	while(achieved_eps > eps):
+		achieved_eps = 0
+		for i in range(SZE[0]):
+			for j in range(SZE[1]):
+				for passenger in range(2):
+					st = state(np.array([i,j]),passenger)
+					maxx = -Inf
+					for a in actions:
+						val = 0
+						d = p.next_state(st,a)
+						for s2 in d:
+							val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*value1[s2.location[0],s2.location[1],s2.has_passenger])
+						maxx = max(val,maxx)
+					value2[st.location[0],st.location[1],st.has_passenger] = maxx
+					achieved_eps = max(achieved_eps,abs(maxx-value1[st.location[0],st.location[1],st.has_passenger]))
+		value1 = value2
+	def extract_policy(value):
+		pass
+	return extract_policy(value2)
+	
+
+	
+
 p = parta1(start,pickup,drop)
 s1 = state(start)
 s2 = state(np.array([4,0]))
@@ -143,3 +172,5 @@ d = p.next_state(s1,'N')
 
 for k in d:
 	print(k.location)
+
+value_iter(2,1)
