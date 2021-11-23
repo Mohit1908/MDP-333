@@ -115,6 +115,17 @@ class parta1:
 
 		return {x:y for x,y in prob_dict.items() if y!=0}
 			
+	def ret_next_state(self,state1,action):
+		d = self.next_state(state1,action)
+		n = random.randint(0,100)
+		p = 0
+		for s in d:
+			if(p + d[s] >= n):
+				return s
+			else:
+				p+= d[s]
+
+
 	def reward_model(self,state1,action,state2):
 		reward = -1
 		if(action == 'PutDown'):
@@ -243,9 +254,10 @@ def extract_value(policy,p,eps,discount_factor):
 					achieved_eps = max(achieved_eps,abs(val-value1[st.location[0],st.location[1],st.has_passenger]))
 		
 		value1 = value2.copy()
-
 	return value1
 
+def extract_value_linear_algebra(policy,p,eps,discount_factor):
+	pass
 	
 def policy_iter(p,eps,discount_factor):
 
