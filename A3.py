@@ -96,12 +96,12 @@ class parta1:
 	def next_state(self,state1,action):
 
 		if(action == 'PickUp'):
-			if(state1.location == self.pickup):
+			if(state1.location == depots[self.pickup]).all():
 				state1.has_passenger = 1
 			return {state1:1}
 
 		elif(action == 'PutDown'):
-			if(state1.location == self.drop and state1.has_passenger == 1):
+			if((state1.location == depots[self.drop]).all() and state1.has_passenger == 1):
 				state1.location = EXIT_LOCATION
 			return {state1:1}
 
@@ -111,7 +111,9 @@ class parta1:
 		s4 = state([state1.location[0]+1,state1.location[1]],state1.has_passenger)
 		s5 = state([state1.location[0]-1,state1.location[1]],state1.has_passenger)
 
-		return {s1:self.transition_model(state1,action,s1),s2:self.transition_model(state1,action,s2),s3:self.transition_model(state1,action,s3),s4:self.transition_model(state1,action,s4),s5:self.transition_model(state1,action,s5),}
+		prob_dict =  {s1:self.transition_model(state1,action,s1),s2:self.transition_model(state1,action,s2),s3:self.transition_model(state1,action,s3),s4:self.transition_model(state1,action,s4),s5:self.transition_model(state1,action,s5),}
+
+		return {x:y for x,y in prob_dict.items() if y!=0}
 			
 	def reward_model(self,state1,action,state2):
 		reward = -1
@@ -148,7 +150,6 @@ def value_iter(p,eps,discount_factor):
 						val = 0
 						d = p.next_state(st,a)
 
-						print(len(d.keys()))
 						for s2 in (d.keys()):
 							val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*value1[s2.location[0],s2.location[1],s2.has_passenger])
 						maxx = max(val,maxx)
@@ -156,11 +157,12 @@ def value_iter(p,eps,discount_factor):
 					value2[st.location[0],st.location[1],st.has_passenger] = maxx
 					achieved_eps = max(achieved_eps,abs(maxx-value1[st.location[0],st.location[1],st.has_passenger]))
 		
-		value1 = value2.clone()
+		value1 = value2.copy()
+		print(achieved_eps)
 
-	return extract_policy(value2,p)
+	return extract_policy(value2,p,discount_factor)
 
-def extract_policy(value,p):
+def extract_policy(value,p,discount_factor):
 
 	policy = np.empty((SZE[0],SZE[1],2),dtype = str)
 
@@ -203,7 +205,7 @@ def extract_value(policy,p,eps,discount_factor):
 					value2[st.location[0],st.location[1],st.has_passenger] = val
 					achieved_eps = max(achieved_eps,abs(val-value1[st.location[0],st.location[1],st.has_passenger]))
 		
-		value1 = value2.clone()
+		value1 = value2.copy()
 
 	return value1
 
@@ -222,7 +224,7 @@ def policy_iter(p,eps,discount_factor):
 
 	while(changed):
 		value = extract_value(policy1,p,eps,discount_factor)
-		policy2 = extract_policy(value,p)
+		policy2 = extract_policy(value,p,discount_factor)
 		if((policy1 != policy2).any()):
 			changed = True
 		else:
