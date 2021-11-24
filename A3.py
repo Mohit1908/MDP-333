@@ -329,7 +329,7 @@ def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 	while(episode<MAX_EPISODES):
 
 		iterations = 1
-		curr_state = state(np.random.randint(5,size = (2,)))
+		curr_state = state(np.random.randint(SZE[0],size = (2,)))
 		p.start = curr_state
 
 		discounted_rewards = 0
@@ -388,7 +388,7 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 	while(episode<MAX_EPISODES):
 
 		iterations = 1
-		curr_state = state(np.random.randint(5,size = (2,)))
+		curr_state = state(np.random.randint(SZE[0],size = (2,)))
 		p.start = curr_state
 
 		discounted_rewards = 0
@@ -454,7 +454,7 @@ def returnDisRewards(policy,p,discount_factor):			# Can also be used for running
 
 	while(curr_run<TOTAL_RUNS):
 		print('New simulation episode--------------------')
-		curr_state = state(np.random.randint(5,size = (2,)))
+		curr_state = state(np.random.randint(SZE[0],size = (2,)))
 		p.start = curr_state
 		iterations = 0
 		thisFactor = 1
@@ -478,6 +478,40 @@ def returnDisRewards(policy,p,discount_factor):			# Can also be used for running
 	p.start = initial_start
 	return totalRewards/TOTAL_RUNS
 
+def biggerDomain():
+	global SZE
+	global depots
+	global walls
+
+	previous_SZE = SZE.copy()
+	previous_depots = depots.copy()
+	previous_walls = walls.copy()
+
+	SZE = [10,10]
+	depots = {'R':np.array([9,0]),'Y':np.array([1,0]),'W':np.array([6,3]),'B':np.array([0,4]),'G':np.array([9,5]),'M':np.array([5,6]),'C':np.array([9,8]),'P':np.array([0,9])}
+	walls = {}
+
+	#WALLS NEED TO BE UPDATED ..........................................
+	walls['N'] = np.array([[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1]])
+	walls['S'] = np.array([[1,1,1,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0]])
+	walls['E'] = np.array([[1,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,1],[1,0,0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,1],[0,0,0,0,0,0,0,0,0,1]])
+	walls['W'] = np.array([[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0],[1,0,0,0,0,0,0,0,0,0]])
+
+	pickup = 'R'
+	drop = 'P'
+
+	start = np.array([7,9])
+	p = parta1(start,pickup,drop)
+
+	this_policy = policy_iter(p,0.001,0.99)
+	print_policy(this_policy)
+	print(returnDisRewards(this_policy,p,0.99))
+
+	SZE = previous_SZE.copy()
+	depots = previous_depots.copy()
+	walls = previous_walls.copy()
+
+
 if __name__ == "__main__":
 
 	pickup = 'R'
@@ -491,3 +525,6 @@ if __name__ == "__main__":
 	this_policy = policy_iter(p,0.001,0.99)
 	print_policy(this_policy)
 	print(returnDisRewards(this_policy,p,0.99))
+
+	print('For larger game....')
+	biggerDomain()
