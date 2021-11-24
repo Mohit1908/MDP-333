@@ -174,6 +174,21 @@ def print_policy(policy):
 			print(policy[SZE[0]-i-1][j][p],end = " ")
 		print("")
 
+def display(state,p):
+	for i in range(SZE[0]):
+		for j in range(SZE[1]):
+			ni = SZE[0]-i-1
+			if(state.location[0] == ni and state.location[1] == j and state.has_passenger == 1):
+				print("T",end = "")
+			elif(state.location[0] == ni and state.location[1] == j and state.has_passenger == 0):
+				print("t",end = "")
+			elif(ni == depots[p.pickup[0] and j == p.pickup[1]):
+				print("p",end = "")
+			elif(ni == p.drop[0] and j == p.drop[1]):
+				print("t",end = "")
+			else:
+				print("0",end = "")
+		print("")
 
 def value_iter(p,eps,discount_factor):
 
@@ -389,8 +404,8 @@ if __name__ == "__main__":
 	p = parta1(start,pickup,drop)
 	s1 = state(start)
 	s2 = state(np.array([2,4]))
-	
+	display(s1,p)
 	#this_policy = value_iter(p,0.0001,0.9)
 	#print_policy(this_policy)
-	q_learning(p,0.25,0.99,0.1)
-	sarsa_learning(p,0.25,0.99,0.1)
+	#q_learning(p,0.25,0.99,0.1)
+	#sarsa_learning(p,0.25,0.99,0.1)
