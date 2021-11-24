@@ -181,6 +181,7 @@ def value_iter(p,eps,discount_factor):
 
 	achieved_eps = Inf
 
+	iterations = 0
 	while(achieved_eps > eps):
 		achieved_eps = 0
 
@@ -204,9 +205,11 @@ def value_iter(p,eps,discount_factor):
 					achieved_eps = max(achieved_eps,abs(maxx-value1[st.location[0],st.location[1],st.has_passenger]))
 		
 		value1 = value2.copy()
+		iterations += 1
 		#print_value(value1)
 		#print(achieved_eps)
 
+	print("The number of iterations taken are : "+str(iterations))
 	return extract_policy(value2,p,discount_factor)
 
 def extract_policy(value,p,discount_factor):
@@ -271,6 +274,7 @@ def policy_iter(p,eps,discount_factor):
 				for passenger in range(2):
 					policy1[i][j][passenger] = random.choice(('N','E','W','S'))
 
+	iterations = 0
 	while(changed):
 		value = extract_value(policy1,p,eps,discount_factor)
 		policy2 = extract_policy(value,p,discount_factor)
@@ -279,7 +283,13 @@ def policy_iter(p,eps,discount_factor):
 		else:
 			changed = False
 		policy1 = policy2.copy()
+		iterations += 1
+	
+	print("The number of iterations taken are : "+str(iterations))
 	return policy1
+
+def q1_learning()
+
 
 if __name__ == "__main__":
 
@@ -293,5 +303,5 @@ if __name__ == "__main__":
 	s1 = state(start)
 	s2 = state(np.array([2,4]))
 	
-	this_policy = policy_iter(p,0.0001,0.9)
+	this_policy = value_iter(p,0.0001,0.9)
 	print_policy(this_policy)
