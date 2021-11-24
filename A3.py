@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.core.numeric import Inf
 import random
+import matplotlib.pyplot as plt
 
 SZE = [5,5]
 EXIT_LOCATION = np.array([-1,-1])
@@ -174,21 +175,23 @@ def print_policy(policy):
 			print(policy[SZE[0]-i-1][j][p],end = " ")
 		print("")
 
+
 def display(state,p):
 	for i in range(SZE[0]):
 		for j in range(SZE[1]):
 			ni = SZE[0]-i-1
 			if(state.location[0] == ni and state.location[1] == j and state.has_passenger == 1):
-				print("T",end = "")
+				print("T",end = "")   #Taxi has passenger
 			elif(state.location[0] == ni and state.location[1] == j and state.has_passenger == 0):
-				print("t",end = "")
-			elif(ni == depots[p.pickup[0] and j == p.pickup[1]):
-				print("p",end = "")
-			elif(ni == p.drop[0] and j == p.drop[1]):
-				print("t",end = "")
+				print("t",end = "")	  #Empty Taxi...
+			elif((ni == depots[p.pickup][0]) and (j == depots[p.pickup][1])):
+				print("S",end = "")
+			elif(ni == depots[p.drop][0] and j == depots[p.drop][1]):
+				print("D",end = "")
 			else:
 				print("0",end = "")
 		print("")
+	print("")
 
 def value_iter(p,eps,discount_factor):
 
@@ -311,14 +314,17 @@ def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
 	episode = 1
 	Q = np.zeros((SZE[0],SZE[1],2,6)) # 6 actions
+	initial_start = p.start
 
+	reward_iterations = []
 	while(episode<MAX_EPISODES):
 
 		iterations = 1
 		curr_state = state(np.random.randint(5,size = (2,)))
 		p.start = curr_state
 
-		#discounted_rewards = 0
+		discounted_rewards = 0
+		thisFactor = 1
 		while(iterations<MAX_ITERATIONS):
 
 			this_eps = epsilon if not exponential_decay else (epsilon)/iterations
@@ -332,6 +338,9 @@ def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			next_state = p.ret_next_state(curr_state,actions[this_action_num])
 			this_reward = p.reward_model(curr_state,actions[this_action_num],next_state)
 
+			discounted_rewards += this_reward*thisFactor
+			thisFactor *= discount_factor
+
 			if(next_state.location[0]==-1 and next_state.location[1]==-1):
 				Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num] += alpha*(this_reward - Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num])
 				break
@@ -340,8 +349,22 @@ def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
 			curr_state = state([next_state.location[0],next_state.location[1]],next_state.has_passenger)
 			iterations += 1
+
+		reward_iterations.append(discounted_rewards)
 		#print(iterations)
 		episode+=1
+
+	#plt.plot(reward_iterations)
+	#plt.show()
+	policy = np.empty((SZE[0],SZE[1],2),dtype = 'object')
+	for i in range(SZE[0]):
+			for j in range(SZE[1]):
+				for passenger in range(2):
+
+					policy[i][j][passenger] = actions[Q[i][j][passenger].argmax()]
+
+	p.start = initial_start
+	return policy
 
 def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
@@ -350,14 +373,18 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
 	episode = 1
 	Q = np.zeros((SZE[0],SZE[1],2,6)) # 6 actions
+	initial_start = p.start
 
+	reward_iterations = []
 	while(episode<MAX_EPISODES):
 
 		iterations = 1
 		curr_state = state(np.random.randint(5,size = (2,)))
 		p.start = curr_state
 
-		#discounted_rewards = 0
+		discounted_rewards = 0
+		thisFactor = 1
+
 		this_action_num = 100
 		next_action_num = 100
 
@@ -375,6 +402,9 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			next_state = p.ret_next_state(curr_state,actions[this_action_num])
 			this_reward = p.reward_model(curr_state,actions[this_action_num],next_state)
 
+			discounted_rewards += this_reward*thisFactor
+			thisFactor *= discount_factor
+
 			if(random.random()<this_eps):
 				next_action_num = random.randint(0,5)
 			else:
@@ -390,22 +420,65 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			iterations += 1
 
 		#print(iterations)
+		reward_iterations.append(discounted_rewards)
 		episode+=1
 
+	#plt.plot(reward_iterations)
+	#plt.show()
+	policy = np.empty((SZE[0],SZE[1],2),dtype = 'object')
+	for i in range(SZE[0]):
+			for j in range(SZE[1]):
+				for passenger in range(2):
+
+					policy[i][j][passenger] = actions[Q[i][j][passenger].argmax()]
+
+	p.start = initial_start
+	return policy
+
+def returnDisRewards(policy,p,discount_factor):			# Can also be used for running....simulation...
+	TOTAL_RUNS = 10
+	TOTAL_ITERATIONS = 500
+	curr_run = 0
+	totalRewards = 0
+
+	initial_start = p.start
+
+	while(curr_run<TOTAL_RUNS):
+		print('New simulation episode--------------------')
+		curr_state = state(np.random.randint(5,size = (2,)))
+		p.start = curr_state
+		iterations = 0
+		thisFactor = 1
+
+		while(iterations<TOTAL_ITERATIONS):
+			display(curr_state,p)
+			thisAction = policy[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger]
+			next_state = p.ret_next_state(curr_state,thisAction)
+			this_reward = p.reward_model(curr_state,thisAction,next_state)
+
+			totalRewards += thisFactor*this_reward
+			curr_state = state([next_state.location[0],next_state.location[1]],next_state.has_passenger)
+
+			if(curr_state.location[0]==-1 and curr_state.location[1]==-1):
+				break
+			thisFactor *= discount_factor
+			iterations += 1
+
+		curr_run += 1
+
+	p.start = initial_start
+	return totalRewards/TOTAL_RUNS
 
 if __name__ == "__main__":
 
 	pickup = 'R'
-	drop = 'B'
+	drop = 'Y'
 
-	start = np.array([4,1])
-		
-
-	p = parta1(start,pickup,drop)
+	start = np.array([4,4])
 	s1 = state(start)
-	s2 = state(np.array([2,4]))
-	display(s1,p)
-	#this_policy = value_iter(p,0.0001,0.9)
-	#print_policy(this_policy)
-	#q_learning(p,0.25,0.99,0.1)
-	#sarsa_learning(p,0.25,0.99,0.1)
+	p = parta1(start,pickup,drop)
+	#display(s1,p)
+	
+	this_policy = policy_iter(p,0.001,0.99)
+	print_policy(this_policy)
+	print(returnDisRewards(this_policy,p,0.99))
