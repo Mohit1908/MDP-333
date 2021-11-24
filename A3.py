@@ -287,6 +287,7 @@ def policy_iter(p,eps,discount_factor):
 	policy2 = np.empty((SZE[0],SZE[1],2),dtype = 'object')
 	changed = True
 
+	utilites = []
 	#Initialize policy...
 	for i in range(SZE[0]):
 			for j in range(SZE[1]):
@@ -296,6 +297,7 @@ def policy_iter(p,eps,discount_factor):
 	iterations = 0
 	while(changed):
 		value = extract_value(policy1,p,eps,discount_factor)
+		utilites.append(value)
 		policy2 = extract_policy(value,p,discount_factor)
 		if((policy1 != policy2).any()):
 			changed = True
@@ -304,6 +306,13 @@ def policy_iter(p,eps,discount_factor):
 		policy1 = policy2.copy()
 		iterations += 1
 	
+	policy_loss = []
+	for utility in utilites:
+		policy_loss.append(np.max(abs(utility - utilites[-1])))
+
+	#plt.plot(policy_loss)
+	#plt.show()
+
 	print("The number of iterations taken are : "+str(iterations))
 	return policy1
 
@@ -436,7 +445,7 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 	return policy
 
 def returnDisRewards(policy,p,discount_factor):			# Can also be used for running....simulation...
-	TOTAL_RUNS = 10
+	TOTAL_RUNS = 1
 	TOTAL_ITERATIONS = 500
 	curr_run = 0
 	totalRewards = 0
