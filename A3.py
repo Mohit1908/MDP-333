@@ -192,7 +192,7 @@ def value_iter(p,eps,discount_factor):
 					maxx = -Inf
 
 					for a in actions:
-						print(a)
+						#print(a)
 						val = 0
 						d = p.next_state(st,a)
 
@@ -204,7 +204,7 @@ def value_iter(p,eps,discount_factor):
 					achieved_eps = max(achieved_eps,abs(maxx-value1[st.location[0],st.location[1],st.has_passenger]))
 		
 		value1 = value2.copy()
-		print_value(value1)
+		#print_value(value1)
 		#print(achieved_eps)
 
 	return extract_policy(value2,p,discount_factor)
@@ -284,22 +284,14 @@ def policy_iter(p,eps,discount_factor):
 if __name__ == "__main__":
 
 	pickup = 'R'
-	drop = 'Y'
+	drop = 'B'
 
-	start = np.array([3,4])
+	start = np.array([4,1])
 		
 
 	p = parta1(start,pickup,drop)
 	s1 = state(start)
 	s2 = state(np.array([2,4]))
 	
-	print(p.transition_model(s1,'N',s2))
-	print(p.reward_model(s1,'N',s2))
-	
-	d = p.next_state(s1,'N')
-
-	for k in d:
-		print(k.location)
-
-	this_policy = policy_iter(p,0.2,0.9)
+	this_policy = policy_iter(p,0.0001,0.9)
 	print_policy(this_policy)
