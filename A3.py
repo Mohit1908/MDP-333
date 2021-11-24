@@ -117,14 +117,15 @@ class parta1:
 			
 	def ret_next_state(self,state1,action):
 		d = self.next_state(state1,action)
-		n = random.randint(0,100)
+		coin = random.random()
 		p = 0
 		for s in d:
-			if(p + d[s] >= n):
+			if(p + d[s] >= coin):
 				return s
 			else:
 				p+= d[s]
 		
+
 
 	def reward_model(self,state1,action,state2):
 		reward = -1
@@ -288,7 +289,7 @@ def policy_iter(p,eps,discount_factor):
 	print("The number of iterations taken are : "+str(iterations))
 	return policy1
 
-def q1_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
+def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
 	MAX_EPISODES = 2000
 	MAX_ITERATIONS = 500
@@ -308,11 +309,11 @@ def q1_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			this_eps = epsilon if not exponential_decay else (epsilon)/iterations
 
 			if(random.random()<this_eps):
-				this_action_num = random.randint(0,6)
+				this_action_num = random.randint(0,5)
 			else:
 				this_action_num = Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger].argmax()
 
-			print(this_action_num)
+			#print(this_action_num)
 			next_state = p.ret_next_state(curr_state,actions[this_action_num])
 			this_reward = p.reward_model(curr_state,actions[this_action_num],next_state)
 
@@ -322,12 +323,59 @@ def q1_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			else:
 				Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num] += alpha*(this_reward + discount_factor*np.max(Q[next_state.location[0]][next_state.location[1]][next_state.has_passenger]) - Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num])
 
-			curr_state = next_state.copy()
+			curr_state = state([next_state.location[0],next_state.location[1]],next_state.has_passenger)
 			iterations += 1
-
+		#print(iterations)
 		episode+=1
 
+def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
+	MAX_EPISODES = 2000
+	MAX_ITERATIONS = 500
+
+	episode = 1
+	Q = np.zeros((SZE[0],SZE[1],2,6)) # 6 actions
+
+	while(episode<MAX_EPISODES):
+
+		iterations = 1
+		curr_state = state(np.random.randint(5,size = (2,)))
+		p.start = curr_state
+
+		#discounted_rewards = 0
+		this_action_num = 100
+		next_action_num = 100
+
+		while(iterations<MAX_ITERATIONS):
+
+			this_eps = epsilon if not exponential_decay else (epsilon)/iterations
+
+			if (this_action_num!=100):
+				this_action_num = next_action_num
+			elif(random.random()<this_eps):
+				this_action_num = random.randint(0,5)
+			else:
+				this_action_num = Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger].argmax()
+
+			next_state = p.ret_next_state(curr_state,actions[this_action_num])
+			this_reward = p.reward_model(curr_state,actions[this_action_num],next_state)
+
+			if(random.random()<this_eps):
+				next_action_num = random.randint(0,5)
+			else:
+				next_action_num = Q[next_state.location[0]][next_state.location[1]][next_state.has_passenger].argmax()
+
+			if(next_state.location[0]==-1 and next_state.location[1]==-1):
+				Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num] += alpha*(this_reward - Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num])
+				break
+			else:
+				Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num] += alpha*(this_reward + discount_factor*(Q[next_state.location[0]][next_state.location[1]][next_state.has_passenger][next_action_num]) - Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num])
+
+			curr_state = state([next_state.location[0],next_state.location[1]],next_state.has_passenger)
+			iterations += 1
+
+		#print(iterations)
+		episode+=1
 
 
 if __name__ == "__main__":
@@ -344,4 +392,5 @@ if __name__ == "__main__":
 	
 	#this_policy = value_iter(p,0.0001,0.9)
 	#print_policy(this_policy)
-	q1_learning(p,0.5,0.99,0.25)
+	q_learning(p,0.25,0.99,0.1)
+	sarsa_learning(p,0.25,0.99,0.1)
