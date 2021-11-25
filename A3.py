@@ -244,7 +244,7 @@ def value_iter(p,eps,discount_factor):
 		#print(achieved_eps)
 
 	print("The number of iterations taken are : "+str(iterations))
-	return extract_policy(value2,p,discount_factor)
+	return extract_policy(value2,p,discount_factor),iterations
 
 def extract_policy(value,p,discount_factor):
 
@@ -495,6 +495,7 @@ def returnDisRewards(policy,p,discount_factor):			# Can also be used for running
 	while(curr_run<TOTAL_RUNS):
 		print('New simulation episode--------------------')
 		curr_state = state(np.random.randint(SZE[0],size = (2,)),np.random.randint(SZE[0],size = (2,)))
+		#curr_state = state(depots['R'],depots['Y'])   #For A.2.c
 		p.start = curr_state
 		iterations = 0
 		thisFactor = 1
@@ -504,6 +505,9 @@ def returnDisRewards(policy,p,discount_factor):			# Can also be used for running
 			thisAction = policy[curr_state.location[0]][curr_state.location[1]][curr_state.pickup[0]][curr_state.pickup[1]][curr_state.has_passenger]
 			next_state = p.ret_next_state(curr_state,thisAction)
 			this_reward = p.reward_model(curr_state,thisAction,next_state)
+
+			# For A.2.c 
+			#print(str(iterations) + ": ("+str(curr_state.location[0])+","+str(curr_state.location[1])+")-->"+thisAction)
 
 			totalRewards += thisFactor*this_reward
 			curr_state = state([next_state.location[0],next_state.location[1]],[next_state.pickup[0],next_state.pickup[1]],next_state.has_passenger)
@@ -542,7 +546,6 @@ def biggerDomain():
 	p = parta1(start,drop)
 
 	this_policy = q_learning(p,0.25,0.99,0.01)
-	#print_policy(this_policy)
 	print(returnDisRewards(this_policy,p,0.99))
 
 	SZE = previous_SZE.copy()
@@ -550,19 +553,36 @@ def biggerDomain():
 	walls = previous_walls.copy()
 
 
-if __name__ == "__main__":
+def partA2_b(this_discount_factor):
+	epsilon_list = [0.005,0.01,0.02,0.04,0.08,0.16]
+	iterations = []
 
-	pickup = 'R'
 	drop = 'Y'
 	start = np.array([4,4])
-	s1 = state(start,[depots[pickup][0],depots[pickup][1]])
 	p = parta1(start,drop)
-	#display(s1,p)
-	
-	#this_policy = sarsa_learning(p,0.25,0.99,0.1)
-	#print_policy(this_policy)
-	#print(returnDisRewards(this_policy,p,0.99))
 
-	print('For larger game....')
-	biggerDomain()
+	for epsilon in epsilon_list:
+		_,thisIter = value_iter(p,epsilon,this_discount_factor)
+		iterations.append(thisIter)
+
+	plt.plot(epsilon_list,iterations)
+	plt.xlabel("Epsilons")
+	plt.ylabel("Number of iterations")
+	plt.title("Discount_factor = "+str(this_discount_factor))
+	plt.show()
+
+
+if __name__ == "__main__":
+
+	drop = 'G'
+	start = np.array([4,4])
+	p = parta1(start,drop)
+	#this_policy,_ = value_iter(p,0.01,0.9)
+	#returnDisRewards(this_policy,p,0.9)
+	
+	#partA2_b(0.1)
+
+
+	#print('For larger game....')
+	#biggerDomain()
 	
