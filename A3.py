@@ -300,8 +300,33 @@ def extract_value(policy,p,eps,discount_factor):
 	return value1
 
 def extract_value_linear_algebra(policy,p,eps,discount_factor):
-	pass
-	
+	value = np.zeros((SZE[0],SZE[1],SZE[0],SZE[1],2))
+	A = []
+	b = []
+	for i in range(SZE[0]):
+			for j in range(SZE[1]):
+				for k in range(SZE[0]):
+					for l in range(SZE[1]):
+						for passenger in range(2):
+							st = state(np.array([i,j]),np.array([k,l]),passenger)
+							d = p.next_state(st,policy[i][j][k][l][passenger])
+							temp = np.zeros(SZE[0]*SZE[1]*SZE[0]*SZE[1]*2)
+							temp[i*SZE[1]*SZE[0]*SZE[1]*2 + j*SZE[0]*SZE[1]*2+k*SZE[1]*2+l*2+passenger] = 1
+							for s in d:
+								t = d[s]
+								temp[s.location[0]*SZE[1]*SZE[0]*SZE[1]*2 + s.location[1]*SZE[0]*SZE[1]*2+s.pickup[0]*SZE[1]*2+s.pickup[1]*2+s.has_passenger] -= discount_factor*t
+								r = t*p.reward_model(st,policy[i][j][k][l][passenger],s)
+							A.append(temp)
+							b.append(r)
+	ans = np.linalg.solve(np.array(A), np.array(b))
+	for i in range(SZE[0]):
+			for j in range(SZE[1]):
+				for k in range(SZE[0]):
+					for l in range(SZE[1]):
+						for passenger in range(2):
+							value[i][j][k][l][passenger] = ans[i*SZE[1]*SZE[0]*SZE[1]*2 + j*SZE[0]*SZE[1]*2+k*SZE[1]*2+l*2+passenger]
+	return value
+
 def policy_iter(p,eps,discount_factor):
 
 	policy1 = np.empty((SZE[0],SZE[1],SZE[0],SZE[1],2),dtype = 'object')
@@ -319,7 +344,9 @@ def policy_iter(p,eps,discount_factor):
 
 	iterations = 0
 	while(changed):
+		#value = extract_value_linear_algebra(policy1,p,eps,discount_factor)
 		value = extract_value(policy1,p,eps,discount_factor)
+		#print(value2-value1)
 		utilites.append(value)
 		policy2 = extract_policy(value,p,discount_factor)
 		if((policy1 != policy2).any()):
@@ -609,7 +636,7 @@ if __name__ == "__main__":
 
 	#this_policy,_ = value_iter(p,0.01,0.9)
 	#returnDisRewards(this_policy,p,0.9)
-	#this_policy = policy_iter(p,0.01,0.9)
+	this_policy = policy_iter(p,0.001,0.9)
 	
 	#partA2_b(0.1)
 
