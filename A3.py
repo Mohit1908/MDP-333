@@ -101,7 +101,7 @@ class parta1:
 	def next_state(self,state1,action):
 		s1 = state([state1.location[0],state1.location[1]],[state1.pickup[0],state1.pickup[1]],state1.has_passenger)
 		if(action == 'PickUp'):
-			if(state1.location == state1.pickup).all():
+			if(state1.location[0] == state1.pickup[0] and state1.location[1] == state1.pickup[1]):
 				s1.has_passenger = 1
 			return {s1:1}
 
@@ -150,7 +150,7 @@ class parta1:
 			if(state1.has_passenger == 0):
 				reward = -10
 		if(action == 'PickUp'):
-			if((state1.location != state1.pickup).any() and state1.has_passenger==0):
+			if(((state1.location[0] != state1.pickup[0]) or (state1.location[1] != state1.pickup[1])) and state1.has_passenger==0):
 				reward = -10
 		return reward
 
@@ -531,15 +531,15 @@ if __name__ == "__main__":
 
 	pickup = 'R'
 	drop = 'Y'
-
 	start = np.array([4,4])
 	s1 = state(start,[depots[pickup][0],depots[pickup][1]])
 	p = parta1(start,drop)
 	#display(s1,p)
 	
-	this_policy = value_iter(p,0.1,0.99)
+	this_policy = value_iter(p,0.01,0.9)
 	#print_policy(this_policy)
 	print(returnDisRewards(this_policy,p,0.99))
 
 	#print('For larger game....')
 	#biggerDomain()
+	
