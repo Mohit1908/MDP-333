@@ -341,7 +341,7 @@ def policy_iter(p,eps,discount_factor):
 
 def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
-	MAX_EPISODES = 2000
+	MAX_EPISODES = 10000
 	MAX_ITERATIONS = 500
 
 	episode = 1
@@ -539,10 +539,10 @@ def biggerDomain():
 	drop = 'P'
 
 	start = np.array([7,9])
-	p = parta1(start,pickup,drop)
+	p = parta1(start,drop)
 
-	this_policy = policy_iter(p,0.001,0.99)
-	print_policy(this_policy)
+	this_policy = q_learning(p,0.25,0.99,0.01)
+	#print_policy(this_policy)
 	print(returnDisRewards(this_policy,p,0.99))
 
 	SZE = previous_SZE.copy()
@@ -559,10 +559,10 @@ if __name__ == "__main__":
 	p = parta1(start,drop)
 	#display(s1,p)
 	
-	this_policy = sarsa_learning(p,0.25,0.99,0.1)
+	#this_policy = sarsa_learning(p,0.25,0.99,0.1)
 	#print_policy(this_policy)
-	print(returnDisRewards(this_policy,p,0.99))
+	#print(returnDisRewards(this_policy,p,0.99))
 
-	#print('For larger game....')
-	#biggerDomain()
+	print('For larger game....')
+	biggerDomain()
 	
