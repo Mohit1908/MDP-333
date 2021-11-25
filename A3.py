@@ -412,14 +412,21 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 	MAX_ITERATIONS = 500
 
 	episode = 1
-	Q = np.zeros((SZE[0],SZE[1],2,6)) # 6 actions
+	Q = np.zeros((SZE[0],SZE[1],SZE[0],SZE[1],2,6)) # 6 actions
 	initial_start = p.start
 
 	reward_iterations = []
 	while(episode<MAX_EPISODES):
 
 		iterations = 1
-		curr_state = state(np.random.randint(SZE[0],size = (2,)))
+		passenger = random.randint(0,1)
+		#print(passenger)
+		curr_state = None
+		if(passenger == 1):
+			l = np.random.randint(SZE[0],size = (2,))
+			curr_state = state(l,np.array([l[0],l[1]]),passenger)
+		else:
+			curr_state = state(np.random.randint(SZE[0],size = (2,)),np.random.randint(SZE[0],size = (2,)),passenger)	#Do prune cases for which pickup != location for passenger == 1
 		p.start = curr_state
 
 		discounted_rewards = 0
@@ -437,8 +444,9 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			elif(random.random()<this_eps):
 				this_action_num = random.randint(0,5)
 			else:
-				this_action_num = Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger].argmax()
+				this_action_num = Q[curr_state.location[0]][curr_state.location[1]][curr_state.pickup[0]][curr_state.pickup[1]][curr_state.has_passenger].argmax()
 
+			#print(this_action_num)
 			next_state = p.ret_next_state(curr_state,actions[this_action_num])
 			this_reward = p.reward_model(curr_state,actions[this_action_num],next_state)
 
@@ -448,29 +456,30 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			if(random.random()<this_eps):
 				next_action_num = random.randint(0,5)
 			else:
-				next_action_num = Q[next_state.location[0]][next_state.location[1]][next_state.has_passenger].argmax()
+				next_action_num = Q[next_state.location[0]][next_state.location[1]][next_state.pickup[0]][next_state.pickup[1]][next_state.has_passenger].argmax()
 
 			if(next_state.location[0]==-1 and next_state.location[1]==-1):
-				Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num] += alpha*(this_reward - Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num])
+				Q[curr_state.location[0]][curr_state.location[1]][curr_state.pickup[0]][curr_state.pickup[1]][curr_state.has_passenger][this_action_num] += alpha*(this_reward - Q[curr_state.location[0]][curr_state.location[1]][curr_state.pickup[0]][curr_state.pickup[1]][curr_state.has_passenger][this_action_num])
 				break
 			else:
-				Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num] += alpha*(this_reward + discount_factor*(Q[next_state.location[0]][next_state.location[1]][next_state.has_passenger][next_action_num]) - Q[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger][this_action_num])
+				Q[curr_state.location[0]][curr_state.location[1]][curr_state.pickup[0]][curr_state.pickup[1]][curr_state.has_passenger][this_action_num] += alpha*(this_reward + discount_factor*(Q[next_state.location[0]][next_state.location[1]][next_state.pickup[0]][next_state.pickup[1]][next_state.has_passenger][next_action_num]) - Q[curr_state.location[0]][curr_state.location[1]][curr_state.pickup[0]][curr_state.pickup[1]][curr_state.has_passenger][this_action_num])
 
-			curr_state = state([next_state.location[0],next_state.location[1]],next_state.has_passenger)
+			curr_state = state([next_state.location[0],next_state.location[1]],[next_state.pickup[0],next_state.pickup[1]],next_state.has_passenger)
 			iterations += 1
 
-		#print(iterations)
+		print(iterations)
 		reward_iterations.append(discounted_rewards)
 		episode+=1
 
 	#plt.plot(reward_iterations)
 	#plt.show()
-	policy = np.empty((SZE[0],SZE[1],2),dtype = 'object')
+	policy = np.empty((SZE[0],SZE[1],SZE[0],SZE[1],2),dtype = 'object')
 	for i in range(SZE[0]):
 			for j in range(SZE[1]):
-				for passenger in range(2):
-
-					policy[i][j][passenger] = actions[Q[i][j][passenger].argmax()]
+				for k in range(SZE[0]):
+					for l in range(SZE[1]):
+						for passenger in range(2):
+							policy[i][j][k][l][passenger] = actions[Q[i][j][k][l][passenger].argmax()]
 
 	p.start = initial_start
 	return policy
@@ -550,7 +559,7 @@ if __name__ == "__main__":
 	p = parta1(start,drop)
 	#display(s1,p)
 	
-	this_policy = q_learning(p,0.25,0.99,0.1)
+	this_policy = sarsa_learning(p,0.25,0.99,0.1)
 	#print_policy(this_policy)
 	print(returnDisRewards(this_policy,p,0.99))
 
