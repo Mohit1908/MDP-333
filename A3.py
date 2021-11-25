@@ -23,14 +23,15 @@ walls['E'] = np.array([[1,0,1,0,1],[1,0,1,0,1],[0,0,0,0,1],[0,1,0,0,1],[0,1,0,0,
 walls['W'] = np.array([[1,1,0,1,0],[1,1,0,1,0],[1,0,0,0,0],[1,0,1,0,0],[1,0,1,0,0]])
 
 class state:
-	def __init__(self,location,has_passenger = 0):
+	def __init__(self,location,pickup,has_passenger = 0):
 		self.location = location
+		self.pickup = pickup
 		self.has_passenger = has_passenger
 
 class parta1:
-	def __init__(self,start,pickup,drop):
+	def __init__(self,start,drop):
 		self.start = start
-		self.pickup = pickup
+		#self.pickup = pickup
 		self.drop = drop
 
 	def transition_model(self,state1,action,state2):
@@ -38,8 +39,11 @@ class parta1:
 		if(action == 'PickUp'):
 			if(state2.location == state1.location).all():
 				p = 1.0
-		elif(action == 'PutDown'):			
-			if(state2.location == state1.location).all():	#Here we assumed that PutDown at other than exit location doesn't make sense.
+		elif(action == 'PutDown'):		
+			if(state2.location == EXIT_LOCATION).all():
+				if(state1.location == depots[self.drop]).all():
+					p = 1.0	
+			elif(state2.location == state1.location).all():
 				p = 1.0
 		elif action in (['N','W','E','S']):
 			if(state1.location[0] != state2.location[0]):
@@ -95,22 +99,32 @@ class parta1:
 		return p
 
 	def next_state(self,state1,action):
-		s1 = state([state1.location[0],state1.location[1]],state1.has_passenger)
+		s1 = state([state1.location[0],state1.location[1]],[state1.pickup[0],state1.pickup[1]],state1.has_passenger)
 		if(action == 'PickUp'):
-			if(state1.location == depots[self.pickup]).all():
+			if(state1.location == state1.pickup).all():
 				s1.has_passenger = 1
 			return {s1:1}
 
 		elif(action == 'PutDown'):
-			if((state1.location == depots[self.drop]).all() and state1.has_passenger == 1):
-				s1.location = EXIT_LOCATION
+			if((state1.location == depots[self.drop]).all()):
+				if(state1.has_passenger == 1):
+					s1.location = [EXIT_LOCATION[0],EXIT_LOCATION[1]]
+			else:
+				if(state1.has_passenger == 1):
+					s1.pickup = [state1.location[0],state1.location[1]]
+					s1.has_passenger = 0
 			return {s1:1}
 		
-		s1 = state([state1.location[0],state1.location[1]],state1.has_passenger)
-		s2 = state([state1.location[0],state1.location[1]+1],state1.has_passenger)
-		s3 = state([state1.location[0],state1.location[1]-1],state1.has_passenger)
-		s4 = state([state1.location[0]+1,state1.location[1]],state1.has_passenger)
-		s5 = state([state1.location[0]-1,state1.location[1]],state1.has_passenger)
+		s1 = state([state1.location[0],state1.location[1]],[state1.pickup[0],state1.pickup[1]],state1.has_passenger)
+		s2 = state([state1.location[0],state1.location[1]+1],[state1.pickup[0],state1.pickup[1]],state1.has_passenger)
+		s3 = state([state1.location[0],state1.location[1]-1],[state1.pickup[0],state1.pickup[1]],state1.has_passenger)
+		s4 = state([state1.location[0]+1,state1.location[1]],[state1.pickup[0],state1.pickup[1]],state1.has_passenger)
+		s5 = state([state1.location[0]-1,state1.location[1]],[state1.pickup[0],state1.pickup[1]],state1.has_passenger)
+		if(state1.has_passenger == 1):
+			s2.pickup = [s2.location[0],s2.location[1]]
+			s3.pickup = [s3.location[0],s3.location[1]]
+			s4.pickup = [s4.location[0],s4.location[1]]
+			s5.pickup = [s5.location[0],s5.location[1]]
 
 		prob_dict =  {s1:self.transition_model(state1,action,s1),s2:self.transition_model(state1,action,s2),s3:self.transition_model(state1,action,s3),s4:self.transition_model(state1,action,s4),s5:self.transition_model(state1,action,s5),}
 
@@ -133,19 +147,17 @@ class parta1:
 		if(action == 'PutDown'):
 			if((state1.location == depots[self.drop]).all() and state1.has_passenger==1):
 				reward = 20
-			elif(state1.has_passenger==1):
-				reward = -2						# Although this has prob=0
-			else:
+			if(state1.has_passenger == 0):
 				reward = -10
 		if(action == 'PickUp'):
-			if((state1.location != depots[pickup]).any() and state1.has_passenger==0):
+			if((state1.location != state1.pickup).any() and state1.has_passenger==0):
 				reward = -10
 		return reward
 
 def valueFunction(value,state2):
 	if(state2.location[0]==-1 and state2.location[1]==-1):
 		return 0
-	return value[state2.location[0],state2.location[1],state2.has_passenger]
+	return value[state2.location[0]][state2.location[1]][state2.pickup[0]][state2.pickup[1]][state2.has_passenger]
 
 def print_value(value):
 	p = 0
@@ -184,7 +196,7 @@ def display(state,p):
 				print("T",end = "")   #Taxi has passenger
 			elif(state.location[0] == ni and state.location[1] == j and state.has_passenger == 0):
 				print("t",end = "")	  #Empty Taxi...
-			elif((ni == depots[p.pickup][0]) and (j == depots[p.pickup][1])):
+			elif((ni == state.pickup[0]) and (j == state.pickup[1])):
 				print("S",end = "")
 			elif(ni == depots[p.drop][0] and j == depots[p.drop][1]):
 				print("D",end = "")
@@ -195,8 +207,8 @@ def display(state,p):
 
 def value_iter(p,eps,discount_factor):
 
-	value1 = np.zeros((SZE[0],SZE[1],2))
-	value2 = np.zeros((SZE[0],SZE[1],2))
+	value1 = np.zeros((SZE[0],SZE[1],SZE[0],SZE[1],2))
+	value2 = np.zeros((SZE[0],SZE[1],SZE[0],SZE[1],2))
 
 	achieved_eps = Inf
 
@@ -206,22 +218,25 @@ def value_iter(p,eps,discount_factor):
 
 		for i in range(SZE[0]):
 			for j in range(SZE[1]):
-				for passenger in range(2):
+				for k in range(SZE[0]):
+					for l in range(SZE[1]):
+						for passenger in range(2):
+							if(passenger == 1):
+								if(i!=k or j!=l):
+									continue
+							st = state(np.array([i,j]),np.array([k,l]),passenger)
+							maxx = -Inf
 
-					st = state(np.array([i,j]),passenger)
-					maxx = -Inf
+							for a in actions:
+								val = 0
+								d = p.next_state(st,a)
 
-					for a in actions:
-						#print(a)
-						val = 0
-						d = p.next_state(st,a)
-
-						for s2 in (d.keys()):
-							val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*valueFunction(value1,s2))
-						maxx = max(val,maxx)
-					
-					value2[st.location[0],st.location[1],st.has_passenger] = maxx
-					achieved_eps = max(achieved_eps,abs(maxx-value1[st.location[0],st.location[1],st.has_passenger]))
+								for s2 in (d.keys()):
+									val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*valueFunction(value1,s2))
+								maxx = max(val,maxx)
+							
+							value2[st.location[0],st.location[1],st.pickup[0],st.pickup[1],st.has_passenger] = maxx
+							achieved_eps = max(achieved_eps,abs(maxx-value1[st.location[0],st.location[1],st.pickup[0],st.pickup[1],st.has_passenger]))
 		
 		value1 = value2.copy()
 		iterations += 1
@@ -233,23 +248,25 @@ def value_iter(p,eps,discount_factor):
 
 def extract_policy(value,p,discount_factor):
 
-	policy = np.empty((SZE[0],SZE[1],2),dtype = 'object')
+	policy = np.empty((SZE[0],SZE[1],SZE[0],SZE[1],2),dtype = 'object')
 	for i in range(SZE[0]):
 		for j in range(SZE[1]):
-			for passenger in range(2):
-				st = state(np.array([i,j]),passenger)
-				maxx = -Inf
+			for k in range(SZE[0]):
+				for l in range(SZE[1]):
+					for passenger in range(2):
+						st = state(np.array([i,j]),np.array([k,l]),passenger)
+						maxx = -Inf
 
-				for a in actions:
-					val = 0
-					d = p.next_state(st,a)
-					for s2 in (d.keys()):
-						val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*valueFunction(value,s2))
-					if(maxx<val):
-						policy[i][j][passenger] = a
-						#print(a)
-						#print(policy[i][j][passenger])
-						maxx = val
+						for a in actions:
+							val = 0
+							d = p.next_state(st,a)
+							for s2 in (d.keys()):
+								val += d[s2]*(p.reward_model(st,a,s2) + discount_factor*valueFunction(value,s2))
+							if(maxx<val):
+								policy[i][j][k][l][passenger] = a
+								#print(a)
+								#print(policy[i][j][passenger])
+								maxx = val
 	return policy
 
 def extract_value(policy,p,eps,discount_factor):
@@ -454,20 +471,19 @@ def returnDisRewards(policy,p,discount_factor):			# Can also be used for running
 
 	while(curr_run<TOTAL_RUNS):
 		print('New simulation episode--------------------')
-		curr_state = state(np.random.randint(SZE[0],size = (2,)))
+		curr_state = state(np.random.randint(SZE[0],size = (2,)),np.random.randint(SZE[0],size = (2,)))
 		p.start = curr_state
 		iterations = 0
 		thisFactor = 1
 
 		while(iterations<TOTAL_ITERATIONS):
 			display(curr_state,p)
-			thisAction = policy[curr_state.location[0]][curr_state.location[1]][curr_state.has_passenger]
+			thisAction = policy[curr_state.location[0]][curr_state.location[1]][curr_state.pickup[0]][curr_state.pickup[1]][curr_state.has_passenger]
 			next_state = p.ret_next_state(curr_state,thisAction)
 			this_reward = p.reward_model(curr_state,thisAction,next_state)
 
 			totalRewards += thisFactor*this_reward
-			curr_state = state([next_state.location[0],next_state.location[1]],next_state.has_passenger)
-
+			curr_state = state([next_state.location[0],next_state.location[1]],[next_state.pickup[0],next_state.pickup[1]],next_state.has_passenger)
 			if(curr_state.location[0]==-1 and curr_state.location[1]==-1):
 				break
 			thisFactor *= discount_factor
@@ -517,13 +533,13 @@ if __name__ == "__main__":
 	drop = 'Y'
 
 	start = np.array([4,4])
-	s1 = state(start)
-	p = parta1(start,pickup,drop)
+	s1 = state(start,[depots[pickup][0],depots[pickup][1]])
+	p = parta1(start,drop)
 	#display(s1,p)
 	
-	this_policy = policy_iter(p,0.001,0.99)
-	print_policy(this_policy)
+	this_policy = value_iter(p,0.1,0.99)
+	#print_policy(this_policy)
 	print(returnDisRewards(this_policy,p,0.99))
 
-	print('For larger game....')
-	biggerDomain()
+	#print('For larger game....')
+	#biggerDomain()
