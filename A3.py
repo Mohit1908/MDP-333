@@ -270,8 +270,8 @@ def extract_policy(value,p,discount_factor):
 	return policy
 
 def extract_value(policy,p,eps,discount_factor):
-	value1 = np.zeros((SZE[0],SZE[1],2))
-	value2 = np.zeros((SZE[0],SZE[1],2))
+	value1 = np.zeros((SZE[0],SZE[1],SZE[0],SZE[1],2))
+	value2 = np.zeros((SZE[0],SZE[1],SZE[0],SZE[1],2))
 
 	achieved_eps = Inf
 
@@ -280,17 +280,21 @@ def extract_value(policy,p,eps,discount_factor):
 
 		for i in range(SZE[0]):
 			for j in range(SZE[1]):
-				for passenger in range(2):
+				for k in range(SZE[0]):
+					for l in range(SZE[1]):
+						for passenger in range(2):
+							if(passenger==1):
+								if(i != k or j != l):
+									continue
+							st = state(np.array([i,j]),np.array([k,l]),passenger)
+							val = 0
+							d = p.next_state(st,policy[i][j][k][l][passenger])
 
-					st = state(np.array([i,j]),passenger)
-					val = 0
-					d = p.next_state(st,policy[i][j][passenger])
-
-					for s2 in (d.keys()):
-						val += d[s2]*(p.reward_model(st,policy[i][j][passenger],s2) + discount_factor*valueFunction(value1,s2))
-										
-					value2[st.location[0],st.location[1],st.has_passenger] = val
-					achieved_eps = max(achieved_eps,abs(val-value1[st.location[0],st.location[1],st.has_passenger]))
+							for s2 in (d.keys()):
+								val += d[s2]*(p.reward_model(st,policy[i][j][k][l][passenger],s2) + discount_factor*valueFunction(value1,s2))
+												
+							value2[st.location[0],st.location[1],st.pickup[0],st.pickup[1],st.has_passenger] = val
+							achieved_eps = max(achieved_eps,abs(val-value1[st.location[0],st.location[1],st.pickup[0],st.pickup[1],st.has_passenger]))
 		
 		value1 = value2.copy()
 	return value1
@@ -300,16 +304,18 @@ def extract_value_linear_algebra(policy,p,eps,discount_factor):
 	
 def policy_iter(p,eps,discount_factor):
 
-	policy1 = np.empty((SZE[0],SZE[1],2),dtype = 'object')
-	policy2 = np.empty((SZE[0],SZE[1],2),dtype = 'object')
+	policy1 = np.empty((SZE[0],SZE[1],SZE[0],SZE[1],2),dtype = 'object')
+	policy2 = np.empty((SZE[0],SZE[1],SZE[0],SZE[1],2),dtype = 'object')
 	changed = True
 
 	utilites = []
 	#Initialize policy...
 	for i in range(SZE[0]):
 			for j in range(SZE[1]):
-				for passenger in range(2):
-					policy1[i][j][passenger] = random.choice(('N','E','W','S'))
+				for k in range(SZE[0]):
+					for l in range(SZE[1]):
+						for passenger in range(2):
+							policy1[i][j][k][l][passenger] = random.choice(('N','E','W','S'))
 
 	iterations = 0
 	while(changed):
@@ -536,7 +542,7 @@ if __name__ == "__main__":
 	p = parta1(start,drop)
 	#display(s1,p)
 	
-	this_policy = value_iter(p,0.01,0.9)
+	this_policy = policy_iter(p,0.01,0.9)
 	#print_policy(this_policy)
 	print(returnDisRewards(this_policy,p,0.99))
 
