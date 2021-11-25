@@ -333,14 +333,20 @@ def policy_iter(p,eps,discount_factor):
 	for utility in utilites:
 		policy_loss.append(np.max(abs(utility - utilites[-1])))
 
-	#plt.plot(policy_loss)
-	#plt.show()
+	"""
+	plt.plot(range(1,iterations+1),policy_loss)
+	plt.xlabel("num of iterations")
+	plt.ylabel("policy_loss")
+	plt.title("Discount_factor = "+str(discount_factor))
+	plt.show()
+	#"""
 
 	print("The number of iterations taken are : "+str(iterations))
 	return policy1
 
 def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
+	#MAX_EPISODES = 2000 
 	MAX_EPISODES = 10000
 	MAX_ITERATIONS = 500
 
@@ -390,11 +396,20 @@ def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			iterations += 1
 
 		reward_iterations.append(discounted_rewards)
-		print(iterations)
+		#print(iterations)
 		episode+=1
 
-	#plt.plot(reward_iterations)
-	#plt.show()
+	#"""
+	plt.plot(reward_iterations)
+	plt.xlabel("Number of iterations")
+	plt.ylabel("Total reward in episode")
+	if exponential_decay:
+		plt.title("Q-learning with exponential_decay")
+	else:
+		plt.title("Q-learning eps = "+str(epsilon)+", alpha = "+str(alpha))
+	plt.show()
+	#"""
+
 	policy = np.empty((SZE[0],SZE[1],SZE[0],SZE[1],2),dtype = 'object')
 	for i in range(SZE[0]):
 			for j in range(SZE[1]):
@@ -467,12 +482,21 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			curr_state = state([next_state.location[0],next_state.location[1]],[next_state.pickup[0],next_state.pickup[1]],next_state.has_passenger)
 			iterations += 1
 
-		print(iterations)
+		#print(iterations)
 		reward_iterations.append(discounted_rewards)
 		episode+=1
 
-	#plt.plot(reward_iterations)
-	#plt.show()
+	#"""
+	plt.plot(reward_iterations)
+	plt.xlabel("Number of iterations")
+	plt.ylabel("Total reward in episode")
+	if exponential_decay:
+		plt.title("SARSA-learning with exponential_decay")
+	else:
+		plt.title("SARSA-learning")
+	plt.show()
+	#"""
+
 	policy = np.empty((SZE[0],SZE[1],SZE[0],SZE[1],2),dtype = 'object')
 	for i in range(SZE[0]):
 			for j in range(SZE[1]):
@@ -485,7 +509,7 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 	return policy
 
 def returnDisRewards(policy,p,discount_factor):			# Can also be used for running....simulation...
-	TOTAL_RUNS = 1
+	TOTAL_RUNS = 100
 	TOTAL_ITERATIONS = 500
 	curr_run = 0
 	totalRewards = 0
@@ -539,13 +563,12 @@ def biggerDomain():
 	walls['E'] = np.array([[1,0,0,1,0,0,0,1,0,1],[1,0,0,1,0,0,0,1,0,1],[1,0,0,1,0,0,0,1,0,1],[1,0,0,1,0,0,0,1,0,1],[0,0,0,0,0,1,0,0,0,1],[0,0,0,0,0,1,0,0,0,1],[0,0,1,0,0,1,0,1,0,1],[0,0,1,0,0,1,0,1,0,1],[0,0,1,0,0,0,0,1,0,1],[0,0,1,0,0,0,0,1,0,1]])
 	walls['W'] = np.array([[1,1,0,0,1,0,0,0,1,0],[1,1,0,0,1,0,0,0,1,0],[1,1,0,0,1,0,0,0,1,0],[1,1,0,0,1,0,0,0,1,0],[1,0,0,0,0,0,1,0,0,0],[1,0,0,0,0,0,1,0,0,0],[1,0,0,1,0,0,1,0,1,0],[1,0,0,1,0,0,1,0,1,0],[1,0,0,1,0,0,0,0,1,0],[1,0,0,1,0,0,0,0,1,0]])
 
-	pickup = 'R'
-	drop = 'P'
+	drop = 'R'
 
 	start = np.array([7,9])
 	p = parta1(start,drop)
 
-	this_policy = q_learning(p,0.25,0.99,0.01)
+	this_policy = q_learning(p,0.25,0.99,0.1)
 	print(returnDisRewards(this_policy,p,0.99))
 
 	SZE = previous_SZE.copy()
@@ -574,15 +597,23 @@ def partA2_b(this_discount_factor):
 
 if __name__ == "__main__":
 
-	drop = 'G'
+	drop = 'R'
 	start = np.array([4,4])
 	p = parta1(start,drop)
+
+	#this_policy = q_learning(p,0.5,0.99,0.1)
+	#this_policy = q_learning(p,0.25,0.99,0.1,True)
+	#this_policy = sarsa_learning(p,0.25,0.99,0.1)
+	#this_policy = sarsa_learning(p,0.25,0.99,0.1,True)
+	#print(returnDisRewards(this_policy,p,0.99))
+
 	#this_policy,_ = value_iter(p,0.01,0.9)
 	#returnDisRewards(this_policy,p,0.9)
+	#this_policy = policy_iter(p,0.01,0.9)
 	
 	#partA2_b(0.1)
 
 
 	#print('For larger game....')
-	#biggerDomain()
+	biggerDomain()
 	
