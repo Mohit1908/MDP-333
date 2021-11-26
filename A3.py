@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from numpy.core.numeric import Inf
 import random
 import matplotlib.pyplot as plt
+from os import system
+import time
 
 SZE = [5,5]
 EXIT_LOCATION = np.array([-1,-1])
@@ -192,6 +194,8 @@ def print_policy(policy):
 
 
 def display(state,p):
+	#time.sleep(1)
+	#system("clear")
 	for i in range(SZE[0]):
 		for j in range(SZE[1]):
 			ni = SZE[0]-i-1
@@ -205,6 +209,51 @@ def display(state,p):
 				print("D",end = "")
 			else:
 				print("0",end = "")
+		print("")
+	print("")
+
+def display_2(state,p):
+	time.sleep(1)
+	system("clear")
+	for i in range(2*SZE[0]+1):
+		for j in range(2*SZE[1]+1):
+			if(i%2 == 0):
+				if(j%2 == 0):
+					print("+",end = "")
+				else:
+					if(i == 0):
+						print("~",end = "")
+					else:
+						ni = SZE[0]-(i-1)//2-1
+						nj = (j-1)//2
+						if(walls['S'][ni][nj] == 1):
+							print("~",end = "")
+						else:	
+							print(" ",end = "")
+			else:
+				if(j%2 == 0):
+					if(j == 0):
+						print("|",end = "")
+					else:
+						ni = SZE[0]-(i-1)//2-1
+						nj = (j-1)//2
+						if(walls['E'][ni][nj] == 1):
+							print("|",end = "")
+						else:	
+							print(" ",end = "")
+				else:
+					ni = SZE[0]-i//2-1
+					nj = j//2
+					if(state.location[0] == ni and state.location[1] == nj and state.has_passenger == 1):
+						print("T",end = "")   #Taxi has passenger
+					elif(state.location[0] == ni and state.location[1] == nj and state.has_passenger == 0):
+						print("t",end = "")	  #Empty Taxi...
+					elif((ni == state.pickup[0]) and (nj == state.pickup[1])):
+						print("S",end = "")
+					elif(ni == depots[p.drop][0] and nj == depots[p.drop][1]):
+						print("D",end = "")
+					else:
+						print("0",end = "")
 		print("")
 	print("")
 
@@ -563,7 +612,7 @@ def returnDisRewards(policy,p,discount_factor):			# Can also be used for running
 		thisFactor = 1
 
 		while(iterations<TOTAL_ITERATIONS):
-			display(curr_state,p)
+			display_2(curr_state,p)
 			thisAction = policy[curr_state.location[0]][curr_state.location[1]][curr_state.pickup[0]][curr_state.pickup[1]][curr_state.has_passenger]
 			next_state = p.ret_next_state(curr_state,thisAction)
 			this_reward = p.reward_model(curr_state,thisAction,next_state)
@@ -647,8 +696,9 @@ if __name__ == "__main__":
 
 	#this_policy,_ = value_iter(p,0.01,0.9)
 	#print(returnDisRewards(this_policy,p,0.9))
-	#this_policy = policy_iter(p,0.005,0.9)
-	#print(returnDisRewards(this_policy,p,0.9))
+	this_policy = policy_iter(p,0.005,0.9)
+	a = input()
+	print(returnDisRewards(this_policy,p,0.9))
 	#partA2_b(0.1)
 
 
