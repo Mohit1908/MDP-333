@@ -375,10 +375,10 @@ def policy_iter(p,eps,discount_factor):
 	#"""
 
 	print("The number of iterations taken are : "+str(iterations))
-	value1 = extract_value_linear_algebra(policy1,p,eps,discount_factor)
-	value2 = extract_value(policy1,p,eps,discount_factor)
-	print(value2[2][2])
-	print(value1[2][2] - value2[2][2])
+	#value1 = extract_value_linear_algebra(policy1,p,eps,discount_factor)
+	#value2 = extract_value(policy1,p,eps,discount_factor)
+	#print(value2[2][2])
+	#print(value1[2][2] - value2[2][2])
 	#print(value2[2][2])
 	return policy1
 
@@ -479,7 +479,7 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 			l = np.random.randint(SZE[0],size = (2,))
 			curr_state = state(l,np.array([l[0],l[1]]),passenger)
 		else:
-			curr_state = state(np.random.randint(SZE[0],size = (2,)),np.random.randint(SZE[0],size = (2,)),passenger)	#Do prune cases for which pickup != location for passenger == 1
+			curr_state = state(np.random.randint(SZE[0],size = (2,)),np.random.randint(SZE[0],size = (2,)),passenger)
 		p.start = curr_state
 
 		discounted_rewards = 0
@@ -646,9 +646,9 @@ if __name__ == "__main__":
 	#print(returnDisRewards(this_policy,p,0.99))
 
 	#this_policy,_ = value_iter(p,0.01,0.9)
-	#returnDisRewards(this_policy,p,0.9)
-	this_policy = policy_iter(p,0.001,0.9)
-	print(returnDisRewards(this_policy,p,0.9))
+	#print(returnDisRewards(this_policy,p,0.9))
+	#this_policy = policy_iter(p,0.005,0.9)
+	#print(returnDisRewards(this_policy,p,0.9))
 	#partA2_b(0.1)
 
 
