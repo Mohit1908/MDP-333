@@ -433,8 +433,8 @@ def policy_iter(p,eps,discount_factor):
 
 def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 
-	#MAX_EPISODES = 2000 
-	MAX_EPISODES = 10000
+	MAX_EPISODES = 2000 
+	#MAX_EPISODES = 10000
 	MAX_ITERATIONS = 500
 
 	episode = 1
@@ -696,8 +696,8 @@ if __name__ == "__main__":
 
 	#this_policy,_ = value_iter(p,0.01,0.9)
 	#print(returnDisRewards(this_policy,p,0.9))
-	this_policy = policy_iter(p,0.005,0.9)
-	a = input('Press key to enter simulation')
+	this_policy = q_learning(p,0.25,0.99,0.1)
+	a = input('Press key to enter simulation....')
 	print(returnDisRewards(this_policy,p,0.9))
 	#partA2_b(0.1)
 

@@ -5,4 +5,6 @@ grid world. We will implement algorithms for arriving at a good policy offline u
 programming and later implement basic reinforcement learning methods for online learning. For more details about the problem statement see `Problem_statement.pdf`. For the results and analysis see `Taxi_Planning.pdf`
 
 ## Instructions
-* Simple command `python A3.py` can be used to run the file. 
+* Simple command `python A3.py` can be used to run the file and see the simulations.
+* We showed the progress of the game by showing ’t’ as the taxi
+without passenger, ’T’ as the taxi with passenger, ’S’ as the location of the passenger and ’D’ as the destination of the passenger and the rest locations as ’0’. The walls are denoted by '|'
