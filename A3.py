@@ -219,7 +219,7 @@ def display_2(state,p):
 		for j in range(2*SZE[1]+1):
 			if(i%2 == 0):
 				if(j%2 == 0):
-					print("+",end = "")
+					print(" ",end = "")
 				else:
 					if(i == 0):
 						print("~",end = "")
@@ -397,8 +397,8 @@ def policy_iter(p,eps,discount_factor):
 
 	iterations = 0
 	while(changed):
-		value = extract_value_linear_algebra(policy1,p,eps,discount_factor)
-		#value = extract_value(policy1,p,eps,discount_factor)
+		#value = extract_value_linear_algebra(policy1,p,eps,discount_factor)
+		value = extract_value(policy1,p,eps,discount_factor)
 		#print(value1)
 		#value = value2
 		#print(value2-value1)
@@ -415,7 +415,7 @@ def policy_iter(p,eps,discount_factor):
 	for utility in utilites:
 		policy_loss.append(np.max(abs(utility - utilites[-1])))
 
-	"""
+	#"""
 	plt.plot(range(1,iterations+1),policy_loss)
 	plt.xlabel("num of iterations")
 	plt.ylabel("policy_loss")
@@ -596,7 +596,7 @@ def sarsa_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
 	return policy
 
 def returnDisRewards(policy,p,discount_factor):			# Can also be used for running....simulation...
-	TOTAL_RUNS = 100
+	TOTAL_RUNS = 5
 	TOTAL_ITERATIONS = 500
 	curr_run = 0
 	totalRewards = 0
@@ -697,7 +697,7 @@ if __name__ == "__main__":
 	#this_policy,_ = value_iter(p,0.01,0.9)
 	#print(returnDisRewards(this_policy,p,0.9))
 	this_policy = policy_iter(p,0.005,0.9)
-	a = input()
+	a = input('Press key to enter simulation')
 	print(returnDisRewards(this_policy,p,0.9))
 	#partA2_b(0.1)
 
