@@ -99,6 +99,9 @@ class parta1:
 		return p
 
 	def next_state(self,state1,action):
+		if(state1.has_passenger == 1):
+			if(state1.location[0] != state1.pickup[0] or state1.location[1] != state1.pickup[1]):
+				return {}
 		s1 = state([state1.location[0],state1.location[1]],[state1.pickup[0],state1.pickup[1]],state1.has_passenger)
 		if(action == 'PickUp'):
 			if(state1.location[0] == state1.pickup[0] and state1.location[1] == state1.pickup[1]):
@@ -299,7 +302,7 @@ def extract_value(policy,p,eps,discount_factor):
 		value1 = value2.copy()
 	return value1
 
-def extract_value_linear_algebra(policy,p,eps,discount_factor):
+def extract_value_linear_algebra(policy,p,eps,discount_factor):				#can further prune the states that are not possible..
 	value = np.zeros((SZE[0],SZE[1],SZE[0],SZE[1],2))
 	A = []
 	b = []
@@ -312,10 +315,11 @@ def extract_value_linear_algebra(policy,p,eps,discount_factor):
 							d = p.next_state(st,policy[i][j][k][l][passenger])
 							temp = np.zeros(SZE[0]*SZE[1]*SZE[0]*SZE[1]*2)
 							temp[i*SZE[1]*SZE[0]*SZE[1]*2 + j*SZE[0]*SZE[1]*2+k*SZE[1]*2+l*2+passenger] = 1
+							r = 0
 							for s in d:
 								t = d[s]
 								temp[s.location[0]*SZE[1]*SZE[0]*SZE[1]*2 + s.location[1]*SZE[0]*SZE[1]*2+s.pickup[0]*SZE[1]*2+s.pickup[1]*2+s.has_passenger] -= discount_factor*t
-								r = t*p.reward_model(st,policy[i][j][k][l][passenger],s)
+								r += t*p.reward_model(st,policy[i][j][k][l][passenger],s)
 							A.append(temp)
 							b.append(r)
 	ans = np.linalg.solve(np.array(A), np.array(b))
@@ -344,8 +348,10 @@ def policy_iter(p,eps,discount_factor):
 
 	iterations = 0
 	while(changed):
-		#value = extract_value_linear_algebra(policy1,p,eps,discount_factor)
-		value = extract_value(policy1,p,eps,discount_factor)
+		value = extract_value_linear_algebra(policy1,p,eps,discount_factor)
+		#value = extract_value(policy1,p,eps,discount_factor)
+		#print(value1)
+		#value = value2
 		#print(value2-value1)
 		utilites.append(value)
 		policy2 = extract_policy(value,p,discount_factor)
@@ -369,6 +375,11 @@ def policy_iter(p,eps,discount_factor):
 	#"""
 
 	print("The number of iterations taken are : "+str(iterations))
+	value1 = extract_value_linear_algebra(policy1,p,eps,discount_factor)
+	value2 = extract_value(policy1,p,eps,discount_factor)
+	print(value2[2][2])
+	print(value1[2][2] - value2[2][2])
+	#print(value2[2][2])
 	return policy1
 
 def q_learning(p,alpha,discount_factor,epsilon,exponential_decay = False):
@@ -637,10 +648,10 @@ if __name__ == "__main__":
 	#this_policy,_ = value_iter(p,0.01,0.9)
 	#returnDisRewards(this_policy,p,0.9)
 	this_policy = policy_iter(p,0.001,0.9)
-	
+	print(returnDisRewards(this_policy,p,0.9))
 	#partA2_b(0.1)
 
 
 	#print('For larger game....')
-	biggerDomain()
+	#biggerDomain()
 	
