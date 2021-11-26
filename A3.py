@@ -194,8 +194,8 @@ def print_policy(policy):
 
 
 def display(state,p):
-	time.sleep(1)
-	system("clear")
+	#time.sleep(1)
+	#system("clear")
 	for i in range(SZE[0]):
 		for j in range(SZE[1]):
 			ni = SZE[0]-i-1
